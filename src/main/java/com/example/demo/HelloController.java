@@ -1,13 +1,14 @@
 package com.example.demo;
 
 import java.util.*;
-
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.*;
 
 @RestController
 public class HelloController {
 
-    final ProblemService problemService;
+    private final ProblemService problemService;
 
     public HelloController(ProblemService problemService){
         this.problemService = problemService;
@@ -19,8 +20,8 @@ public class HelloController {
     }
 
     @GetMapping("/problems/{id}")
-    public Problem getProblem(@PathVariable String id) {
-        return new Problem(id,"New Problem","Hard");
+    public Problem getProblem(@PathVariable Long id) {
+        return problemService.getProblemById(id);
     }
 
     @GetMapping("/problems")
@@ -34,8 +35,14 @@ public class HelloController {
     }
 
     @PostMapping("/problems")
-    public Problem postProblems(@RequestBody Problem problem){
-        return problemService.add(problem);
-        
+    public ResponseEntity<Problem> postProblems(@Valid @RequestBody Problem problem){
+        Problem save =  problemService.add(problem);
+        return ResponseEntity.status(HttpStatus.CREATED).body(save);
+    }
+
+    @GetMapping("/problems/search")
+    public List<Problem> search(@RequestParam(required = false) String difficulty,
+                                @RequestParam(required = false) String title) {
+        return problemService.search(difficulty, title);
     }
 }
